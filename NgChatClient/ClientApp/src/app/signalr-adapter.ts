@@ -9,7 +9,8 @@ export class SignalRAdapter extends ChatAdapter {
   public userId: string;
 
   private hubConnection: signalR.HubConnection
-  public static serverBaseUrl: string = 'https://ng-chat-api.azurewebsites.net/'; // Set this to 'https://localhost:5001/' if running locally
+  //public static serverBaseUrl: string = 'https://ng-chat-api.azurewebsites.net/'; // Set this to 'https://localhost:5001/' if running locally
+  public static serverBaseUrl: string = 'http://localhost:51336/'; // Set this to 'https://localhost:5001/' if running locally
 
   constructor(private username: string, private http: HttpClient) {
     super();
@@ -60,7 +61,7 @@ export class SignalRAdapter extends ChatAdapter {
     // List connected users to show in the friends list
     // Sending the userId from the request body as this is just a demo 
     return this.http
-      .post(`${SignalRAdapter.serverBaseUrl}listFriends`, { currentUserId: this.userId })
+      .post(`${SignalRAdapter.serverBaseUrl}home/listFriends`, { currentUserId: this.userId })
       .pipe(
         map((res: any) => res),
         catchError((error: any) => Observable.throw(error.error || 'Server error'))

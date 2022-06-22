@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Serialization;
 
 namespace NgChatSignalR
@@ -37,28 +39,36 @@ namespace NgChatSignalR
                 builder
                     .AllowAnyMethod()
                     .AllowAnyHeader()
-                    .WithOrigins("https://localhost:5002")
+
+                    .WithOrigins("https://localhost:44335")
+                    .WithOrigins("http://localhost:4200")
+                    .WithOrigins("http://localhost:51337")
                     .WithOrigins("https://ng-chat.azurewebsites.net")
-                    .AllowCredentials();
+            .AllowAnyHeader().AllowAnyMethod().AllowCredentials();
             }));
 
             services
-                .AddSignalR()
-                .AddAzureSignalR()
-                .AddJsonProtocol(options => {
-                    options.PayloadSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
-                });
+                .AddSignalR();
+              //  .AddAzureSignalR();
+                //.AddJsonProtocol(options =>
+                //{
+                //    options.PayloadSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                //    //options.PayloadSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                //});
 
             services
                 .AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2)
-                .AddJsonOptions(options => {
-                    options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+                .SetCompatibilityVersion(CompatibilityVersion.Latest)
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 });
+
+            services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
             if (env.IsDevelopment())
             {
@@ -71,30 +81,52 @@ namespace NgChatSignalR
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseRouting();
+            app.UseFileServer();
+
+          //  app.UseHttpsRedirection();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
+        //    app.UseCookiePolicy();
 
             app.UseCors("CorsPolicy");
 
-            app.UseAzureSignalR(routes =>
+            //app.UseAzureSignalR(routes =>
+            //{
+            //    routes.MapHub<ChatHub>("/chat");
+            //    routes.MapHub<GroupChatHub>("/groupchat");
+            //});
+            app.UseEndpoints(routes =>
             {
                 routes.MapHub<ChatHub>("/chat");
                 routes.MapHub<GroupChatHub>("/groupchat");
-            });
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "actionOnly",
-                    template: "{action}",
-                    defaults: new { controller = "Home", action = "Index" }
-                );
-
-                routes.MapRoute(
+                routes.MapControllerRoute(
                     name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
+                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                routes.MapControllerRoute(
+             name: "actionOnly",
+             pattern: "{controller=Home}/{action=Index}/{id?}");
+                routes.MapRazorPages();
+
             });
+            app.UseEndpoints(endpoints =>
+            {
+
+            });
+
+
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "actionOnly",
+            //        template: "{action}",
+            //        defaults: new { controller = "Home", action = "Index" }
+            //    );
+
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=Index}/{id?}");
+            //});
         }
     }
 }

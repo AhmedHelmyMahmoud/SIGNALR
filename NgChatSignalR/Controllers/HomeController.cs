@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -21,7 +22,11 @@ namespace NgChatSignalR.Controllers
         // On your application you probably want to fetch this from your authentication context and not receive it as a parameter
         public IActionResult ListFriends([FromBody] dynamic payload)
         {
-            return Json(GroupChatHub.ConnectedParticipants((string)payload.currentUserId));
+            //var jsonReturn = Newtonsoft.Json.JsonConvert.DeserializeObject(payload);
+            string x = Convert.ToString(payload.GetProperty("currentUserId").GetString());
+            //JsonNode data = await JsonSerializer.DeserializeAsync<JsonNode>(payload);
+         //   return Json(GroupChatHub.ConnectedParticipants((string)payload.currentUserId));
+            return Json(GroupChatHub.ConnectedParticipants(Convert.ToString(payload.GetProperty("currentUserId").GetString())));
 
             // Use the following for group chats
             // Make sure you have [pollFriendsList] set to true for this simple group chat example to work as

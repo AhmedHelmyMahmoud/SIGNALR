@@ -16,7 +16,7 @@ export class AppComponent {
   title = 'app';
   currentTheme = 'dark-theme';
   triggeredEvents = [];
-  fileUploadUrl: string = `${SignalRAdapter.serverBaseUrl}UploadFile`;
+  fileUploadUrl: string = `${SignalRAdapter.serverBaseUrl}home/UploadFile`;
 
   userId: string = "offline-demo";
   username: string;

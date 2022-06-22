@@ -9,22 +9,33 @@ export class SignalRGroupAdapter extends ChatAdapter implements IChatGroupAdapte
   public userId: string;
 
   private hubConnection: signalR.HubConnection
-  public static serverBaseUrl: string = 'https://ng-chat-api.azurewebsites.net/'; // Set this to 'https://localhost:5001/' if running locally
+ // public static serverBaseUrl: string = 'https://ng-chat-api.azurewebsites.net/'; // Set this to 'https://localhost:5001/' if running locally
+  public static serverBaseUrl: string = 'http://localhost:51336/'; // Set this to 'https://localhost:5001/' if running locally
 
   constructor(private username: string, private http: HttpClient) {
     super();
-
+debugger;
     this.initializeConnection();
   }
 
   private initializeConnection(): void {
     this.hubConnection = new signalR.HubConnectionBuilder()
-      .withUrl(`${SignalRGroupAdapter.serverBaseUrl}groupchat`)
-      .build();
+    .configureLogging(signalR.LogLevel.Debug)
 
+      .withUrl(`${SignalRGroupAdapter.serverBaseUrl}groupchat`,
+      {
+        skipNegotiation: true,
+        transport: signalR.HttpTransportType.WebSockets
+      }
+      // .withUrl(`${SignalRGroupAdapter.serverBaseUrl}groupchat`
+      )
+      
+      .build();
+      debugger
     this.hubConnection
       .start()
       .then(() => {
+        debugger
         this.joinRoom();
 
         this.initializeListeners();
@@ -33,6 +44,7 @@ export class SignalRGroupAdapter extends ChatAdapter implements IChatGroupAdapte
   }
 
   private initializeListeners(): void {
+    debugger
     this.hubConnection.on("generatedUserId", (userId) => {
       // With the userId set the chat will be rendered
       this.userId = userId;
@@ -51,16 +63,18 @@ export class SignalRGroupAdapter extends ChatAdapter implements IChatGroupAdapte
   }
 
   joinRoom(): void {
+    debugger;
     if (this.hubConnection && this.hubConnection.state == signalR.HubConnectionState.Connected) {
       this.hubConnection.send("join", this.username);
     }
   }
 
   listFriends(): Observable<ParticipantResponse[]> {
+    debugger;
     // List connected users to show in the friends list
     // Sending the userId from the request body as this is just a demo 
     return this.http
-      .post(`${SignalRGroupAdapter.serverBaseUrl}listFriends`, { currentUserId: this.userId })
+      .post(`${SignalRGroupAdapter.serverBaseUrl}home/listFriends`, { currentUserId: this.userId })
       .pipe(
         map((res: any) => res),
         catchError((error: any) => Observable.throw(error.error || 'Server error'))
